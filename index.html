@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Bolsa</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+</head>
+	<body>
+		<div class="container mt-5">
+			<div class="d-flex">
+				<div class="input-group w-25">
+					<div class="input-group-preped">
+						<span class="input-group-text" style="border-radius: 4px 0px 0px 4px">📅</span>
+					</div>
+					<select name="" id="data" class="form-control">
+						<option value="2005">2005</option>
+						<option value="2006">2006</option>
+						<option value="2007">2007</option>
+						<option value="2008">2008</option>
+						<option value="2009">2009</option>
+						<option value="2010">2010</option>
+						<option value="2011">2011</option>
+						<option value="2012">2012</option>
+						<option value="2013">2013</option>
+						<option value="2014">2014</option>
+						<option value="2015">2015</option>
+						<option value="2016">2016</option>
+						<option value="2017">2017</option>
+						<option value="2018">2018</option>
+						<option value="2019">2019</option>
+						<option value="2020">2020</option>
+					</select>
+				</div>
+			</div>
+			<canvas id="bolsa"></canvas>
+		</div>
+		
+		<script>
+			const bolsa = document.querySelector('#bolsa').getContext('2d');
+			const calendario = document.querySelector('#data');
+			const relatorio = document.querySelector('#relatorio');
+
+			const url = 'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY&symbol=TSCO.LON&apikey=demo';
+
+			const date = new Date();
+			const ano = date.getFullYear();
+			
+			calendario.value = ano;
+
+			function grafico(ping) {
+				fetch(url)
+					.then(res => res.json())
+					.then(data => {
+						
+						const key = Object.keys(data['Monthly Time Series']).filter(el => {
+							const item = el.substr(0,4);
+							
+							if (ping) {
+								if (item === ping) {
+									return item;
+								}	
+							} else {
+								if (item === `${ano}`) {
+									return item;
+								}
+							}
+							
+						});
+
+						const item = data['Monthly Time Series'];
+					
+						const s = key.map(elem => {
+							const data = elem;
+							const close = item[elem]['4. close'];
+						
+							return parseInt(close);
+						})
+
+						const chart = new Chart(bolsa, {
+							type: 'line',
+							
+							data: {
+								labels: key.reverse(),
+								datasets : [{
+									label: `Time Series (Daily) ${ ping ? ping : ano }`,
+									backgroundColor: 'transparent',
+									borderColor: '#399',
+									data: s.reverse()
+								}]
+							}
+						})
+					})
+
+					.catch(err => console.log(err))	
+				}
+			
+				grafico()
+
+				calendario.addEventListener('change', () => {
+					grafico(calendario.value)
+				})
+		</script>
+	</body>
+</html>
